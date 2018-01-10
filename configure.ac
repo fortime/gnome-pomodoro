@@ -157,7 +157,7 @@ RECURSIVE_EVAL("$datadir/gnome-pomodoro/plugins", [PLUGIN_DATA_DIR])
 RECURSIVE_EVAL("$libdir/gnome-pomodoro/plugins", [PLUGIN_LIB_DIR])
 RECURSIVE_EVAL("$gsettingsschemadir", [GSETTINGS_SCHEMA_DIR])
 
-if [[ $datadir/ = /usr/share/* ]]; then
+if [[ "$datadir/" = "/usr/share/" -o "$datadir/" = "/usr/share/local/" ]]; then
     RECURSIVE_EVAL("$datadir/gnome-shell/extensions/pomodoro@arun.codito.in", [EXTENSION_DIR])
 fi
 
