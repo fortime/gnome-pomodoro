@@ -320,14 +320,27 @@ var PomodoroStartNotification = new Lang.Class({
             });
         let onDestroy = Lang.bind(this,
             function() {
-                this.timer.disconnect(timerUpdateId);
-                this.disconnect(notificationChangedId);
-                this.disconnect(notificationDestroyId);
+                if (timerUpdateId != 0) {
+                    this.timer.disconnect(timerUpdateId);
+                    timerUpdateId = 0;
+                }
+                if (notificationChangedId != 0) {
+                    this.disconnect(notificationChangedId);
+                    notificationChangedId = 0;
+                }
+                if (notificationDestroyId != 0) {
+                    this.disconnect(notificationDestroyId);
+                    notificationDestroyId = 0;
+                }
             });
 
         let timerUpdateId = this.timer.connect('update', onTimerUpdate);
         let notificationChangedId = this.connect('changed', onChanged);
         let notificationDestroyId = this.connect('destroy', onDestroy);
+
+        // destroy when banner closes
+        banner.connect('close', onDestroy);
+        banner.bodyLabel.actor.connect('destroy', onDestroy);
 
         onChanged();
         onTimerUpdate();
@@ -453,12 +466,23 @@ var PomodoroEndNotification = new Lang.Class({
             });
         let onDestroy = Lang.bind(this,
             function() {
-                this.timer.disconnect(timerUpdateId);
-                this.disconnect(notificationDestroyId);
+                if (timerUpdateId != 0) {
+                    this.timer.disconnect(timerUpdateId);
+                    timerUpdateId = 0;
+                }
+                if (notificationDestroyId != 0) {
+                    this.disconnect(notificationDestroyId);
+                    notificationDestroyId = 0;
+                }
             });
 
         let timerUpdateId = this.timer.connect('update', onTimerUpdate);
         let notificationDestroyId = this.connect('destroy', onDestroy);
+
+        // destroy when banner closes
+        banner.connect('close', onDestroy);
+        banner.bodyLabel.actor.connect('destroy', onDestroy);
+
 
         onTimerUpdate();
 
@@ -656,7 +680,7 @@ var TimerBanner = new Lang.Class({
                 this.timer.stateDuration += 60.0;
             }));
 
-        this.connect('destroy', Lang.bind(this,
+        this.connect('close', Lang.bind(this,
             function() {
                 if (this._timerUpdateId) {
                     this.timer.disconnect(this._timerUpdateId);
@@ -726,6 +750,8 @@ var TimerBanner = new Lang.Class({
     },
 
     _onTimerUpdate: function() {
+        if (this._closed)
+            return;
         let timerState = this.timer.getState();
         let isPaused = this.timer.isPaused();
 
